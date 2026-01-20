@@ -62,7 +62,7 @@ def load_data(filter_status=None, filter_name=None):
     conn.close()
     return df
 
-# === HTML 문서 양식 (따옴표 오류 방지용 수정) ===
+# === HTML 문서 양식 ===
 def create_document_html(row):
     stamp_dept = ""   
     stamp_admin = ""  
@@ -77,7 +77,7 @@ def create_document_html(row):
         stamp_dept = f"<div style='{stamp_style} border-color: red; color: red;'>반려</div>"
         stamp_admin = ""
 
-    # [중요] f-string 시작 (따옴표 3개)
+    # f-string 시작
     doc_html = f"""
 <div style="border: 2px solid #e0e0e0; padding: 30px; background-color: white; color: black; font-family: 'Malgun Gothic', sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
     <h2 style="text-align: center; color: #333; margin-bottom: 30px; letter-spacing: 2px;">휴 가 신 청 서</h2>
@@ -121,8 +121,7 @@ def create_document_html(row):
         위와 같이 휴가를 신청하오니 재가 바랍니다.
     </div>
 </div>
-""" 
-    # [중요] 위에서 따옴표 3개가 닫혔는지 꼭 확인하시라요!
+"""
     return doc_html
 
 # --- 메인 앱 ---
@@ -237,7 +236,7 @@ def main():
                 else:
                     for index, row in pending_df.iterrows():
                         with st.expander(f"📌 {row['name']} - {row['vacation_type']}"):
-                            # [핵심] HTML 렌더링 옵션 포함
+                            # [여기!] 여기가 문제였습네다! unsafe_allow_html=True를 박아넣었습니다!
                             html_content = create_document_html(row)
                             st.markdown(html_content, unsafe_allow_html=True)
                             
