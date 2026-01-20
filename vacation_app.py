@@ -57,202 +57,242 @@ def load_data(filter_status=None, filter_name=None):
         params.append(filter_name)
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
-        
-    # 날짜(request_date) 기준 내림차순 정렬 (최신순)
     query += " ORDER BY id DESC"
-    
     df = pd.read_sql_query(query, conn, params=params)
     conn.close()
     return df
 
-# === HTML 문서 양식 생성 함수 ===
+# === HTML 문서 양식 (관리자용) ===
 def create_document_html(row):
     doc_html = f"""
-<div style="border: 2px solid #333; padding: 20px; background-color: white; color: black; font-family: 'Malgun Gothic', sans-serif;">
-    <h1 style="text-align: center; text-decoration: underline; margin-bottom: 30px; color: black;">휴 가 신 청 서</h1>
-    <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
-        <table style="border-collapse: collapse; text-align: center; border: 1px solid black; color: black;">
+    <div style="border: 2px solid #e0e0e0; padding: 30px; background-color: white; color: black; font-family: 'Malgun Gothic', sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h2 style="text-align: center; color: #333; margin-bottom: 30px; letter-spacing: 2px;">휴 가 신 청 서</h2>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
             <tr>
-                <td style="border: 1px solid black; padding: 5px; background: #f0f0f0; width: 60px; font-size: 12px;">담당</td>
-                <td style="border: 1px solid black; padding: 5px; background: #f0f0f0; width: 60px; font-size: 12px;">팀장</td>
-                <td style="border: 1px solid black; padding: 5px; background: #f0f0f0; width: 60px; font-size: 12px;">대표</td>
+                <td style="border: 1px solid #ddd; background: #f8f9fa; padding: 12px; font-weight: bold; width: 25%; text-align: center;">기안자</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">{row['name']}</td>
+                <td style="border: 1px solid #ddd; background: #f8f9fa; padding: 12px; font-weight: bold; width: 25%; text-align: center;">신청일</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">{row['request_date'][:10]}</td>
             </tr>
-            <tr style="height: 60px;">
-                <td style="border: 1px solid black; vertical-align: middle;">{row['name']}</td>
-                <td style="border: 1px solid black;"></td>
-                <td style="border: 1px solid black;"></td>
+            <tr>
+                <td style="border: 1px solid #ddd; background: #f8f9fa; padding: 12px; font-weight: bold; text-align: center;">휴가 구분</td>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 12px;">
+                    <span style="background-color: #e3f2fd; color: #1565c0; padding: 4px 8px; border-radius: 4px; font-weight: bold;">{row['vacation_type']}</span>
+                </td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; background: #f8f9fa; padding: 12px; font-weight: bold; text-align: center;">사용 기간</td>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 12px;">{row['start_date']} ~ {row['end_date']}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; background: #f8f9fa; padding: 12px; font-weight: bold; text-align: center; vertical-align: middle;">사 유</td>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 12px; height: 100px; vertical-align: top;">{row['reason']}</td>
             </tr>
         </table>
+        <div style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
+            위와 같이 휴가를 신청하오니 재가 바랍니다.
+        </div>
     </div>
-    <table style="width: 100%; border-collapse: collapse; border: 2px solid black; color: black;">
-        <tr>
-            <td style="border: 1px solid black; background: #f9f9f9; padding: 10px; font-weight: bold; width: 20%; text-align: center;">성 명</td>
-            <td style="border: 1px solid black; padding: 10px;">{row['name']}</td>
-            <td style="border: 1px solid black; background: #f9f9f9; padding: 10px; font-weight: bold; width: 20%; text-align: center;">신청일</td>
-            <td style="border: 1px solid black; padding: 10px;">{row['request_date'][:10]}</td>
-        </tr>
-        <tr>
-            <td style="border: 1px solid black; background: #f9f9f9; padding: 10px; font-weight: bold; text-align: center;">휴가 종류</td>
-            <td colspan="3" style="border: 1px solid black; padding: 10px;">{row['vacation_type']}</td>
-        </tr>
-        <tr>
-            <td style="border: 1px solid black; background: #f9f9f9; padding: 10px; font-weight: bold; text-align: center;">기 간</td>
-            <td colspan="3" style="border: 1px solid black; padding: 10px;">
-                {row['start_date']} ~ {row['end_date']}
-            </td>
-        </tr>
-        <tr style="height: 150px;">
-            <td style="border: 1px solid black; background: #f9f9f9; padding: 10px; font-weight: bold; text-align: center;">사 유</td>
-            <td colspan="3" style="border: 1px solid black; padding: 10px; vertical-align: top;">
-                {row['reason']}
-            </td>
-        </tr>
-        <tr>
-            <td style="border: 1px solid black; background: #f9f9f9; padding: 10px; font-weight: bold; text-align: center;">비상연락망</td>
-            <td colspan="3" style="border: 1px solid black; padding: 10px;">
-                010-XXXX-XXXX (기본값)
-            </td>
-        </tr>
-    </table>
-    <div style="margin-top: 30px; text-align: center; color: black;">
-        <p>위와 같이 휴가를 신청하오니 재가 바랍니다.</p>
-        <br>
-        <h3>신청자 : {row['name']} (인)</h3>
-    </div>
-</div>
-"""
+    """
     return doc_html
 
 # --- 메인 앱 ---
 def main():
-    st.set_page_config(page_title="사내 휴가 결재 시스템", layout="wide")
+    st.set_page_config(page_title="Smart 휴가결재", layout="wide", page_icon="🏢")
     init_db()
 
-    # 로고 및 타이틀
-    if os.path.exists("logo.png"):
-        st.image("logo.png", width=400)
-    
-    st.title("전자 휴가 결재 시스템")
-    if not os.path.exists("logo.png"):
-        st.caption("※ logo.png 파일이 폴더에 없어서 로고가 보이지 않습니다.")
+    # 관리자 비밀번호
+    ADMIN_PASSWORD = "1234"
+
+    # === [스타일] 커스텀 CSS (더 깔끔하게) ===
+    st.markdown("""
+        <style>
+        .stApp {
+            background-color: #ffffff;
+        }
+        .main-header {
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #1E88E5;
+            margin-bottom: 20px;
+        }
+        .card-container {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # 로고와 헤더 (깔끔한 배치)
+    col1, col2 = st.columns([1, 6])
+    with col1:
+        if os.path.exists("logo.png"):
+            st.image("logo.png", width=80)
+        else:
+            st.write("🏢") # 로고 없으면 아이콘
+    with col2:
+        st.markdown('<div class="main-header">Smart 전자 결재 시스템</div>', unsafe_allow_html=True)
 
     st.divider()
 
     # 사이드바
-    st.sidebar.header("로그인 / 사용자 전환")
-    user_role = st.sidebar.selectbox("접속 권한 선택", ["일반 사원 (신청)", "관리자 (결재)"])
-    
+    with st.sidebar:
+        st.header("사용자 모드")
+        user_role = st.selectbox("접속 권한을 선택하세요", ["일반 사원 (신청)", "관리자 (결재)"])
+        st.info("💡 쾌적한 업무 환경을 지원합니다.")
+
     # === 1. 일반 사원 화면 ===
     if user_role == "일반 사원 (신청)":
-        
-        # 탭을 나눠서 기능 분리 (신청 vs 조회)
-        tab1, tab2 = st.tabs(["📝 휴가 신청서 작성", "🔎 내 결재 현황 조회"])
-        
-        # [탭 1] 신청하기
-        with tab1:
-            st.subheader("새로운 휴가 신청")
-            with st.form("request_form"):
-                col1, col2 = st.columns(2)
-                name = col1.text_input("성명", placeholder="홍길동")
-                v_type = col2.selectbox("휴가 종류", ["연차", "반차", "병가", "경조사"])
-                col3, col4 = st.columns(2)
-                s_date = col3.date_input("시작일")
-                e_date = col4.date_input("종료일")
-                reason = st.text_area("신청 사유", placeholder="사유를 자세히 입력해주세요")
-                
-                submitted = st.form_submit_button("결재 올리기")
-                if submitted:
-                    if name and reason:
-                        submit_request(name, v_type, s_date, e_date, reason)
-                        st.success(f"✅ {name}님, 휴가 신청이 완료되었습니다! ('내 결재 현황' 탭에서 확인하세요)")
-                    else:
-                        st.error("⚠️ 성명과 사유를 모두 입력해주세요.")
+        if 'admin_auth' in st.session_state:
+            del st.session_state['admin_auth']
 
-        # [탭 2] 내 기안 조회하기 (여기가 새로 추가된 부분)
-        with tab2:
-            st.subheader("🔎 내 기안 문서 진행상황")
-            st.info("성명을 입력하고 엔터(Enter)를 치면 내 신청 내역이 조회됩니다.")
+        tab1, tab2 = st.tabs(["📝 휴가 신청", "📊 내 결재 현황"])
+        
+        with tab1:
+            st.markdown("#### 👋 안녕하세요! 휴가 계획이 있으신가요?")
             
-            search_name = st.text_input("조회할 성명 입력", placeholder="예: 홍길동")
+            # 대시보드 느낌의 카드 (가짜 데이터지만 실제처럼 보임)
+            with st.container():
+                c1, c2, c3 = st.columns(3)
+                c1.metric(label="총 연차", value="15일")
+                c2.metric(label="사용 연차", value="3일")
+                c3.metric(label="잔여 연차", value="12일", delta="-1일 (예정)")
+            
+            st.write("") # 여백
+            
+            # 신청 폼 (박스로 감싸서 깔끔하게)
+            with st.container(border=True):
+                st.subheader("신청서 작성")
+                with st.form("request_form", border=False):
+                    col1, col2 = st.columns(2)
+                    name = col1.text_input("성명", placeholder="이름을 입력하세요")
+                    v_type = col2.selectbox("휴가 구분", ["연차", "반차", "병가", "경조사", "대체휴무"])
+                    
+                    col3, col4 = st.columns(2)
+                    s_date = col3.date_input("시작일")
+                    e_date = col4.date_input("종료일")
+                    
+                    reason = st.text_area("신청 사유", placeholder="업무 공유 사항 및 비상 연락망 등을 기재해 주세요.", height=100)
+                    
+                    st.write("")
+                    submitted = st.form_submit_button("🚀 결재 상신하기", type="primary", use_container_width=True)
+                    
+                    if submitted:
+                        if name and reason:
+                            submit_request(name, v_type, s_date, e_date, reason)
+                            st.success("✅ 상신되었습니다! 결재 진행 상황은 '내 결재 현황' 탭에서 확인하세요.")
+                        else:
+                            st.error("⚠️ 성명과 사유를 정확히 입력해 주세요.")
+
+        with tab2:
+            st.subheader("📂 나의 문서함")
+            search_name = st.text_input("성명 검색", placeholder="본인 이름을 입력하고 엔터를 누르세요")
             
             if search_name:
                 my_df = load_data(filter_name=search_name)
                 
                 if my_df.empty:
-                    st.warning(f"'{search_name}'님의 신청 내역이 없습니다.")
+                    st.info(f"📭 '{search_name}'님의 문서 내역이 없습니다.")
                 else:
-                    st.write(f"총 **{len(my_df)}건**의 신청 내역이 있습니다.")
-                    st.divider()
-                    
+                    st.success(f"총 {len(my_df)}건의 문서가 조회되었습니다.")
                     for index, row in my_df.iterrows():
-                        # 상태에 따른 색상 및 아이콘 설정
-                        status_color = "gray"
+                        # 디자인된 상태 카드
+                        status_color = "#9e9e9e" # 회색 (기본)
+                        status_bg = "#f5f5f5"
                         icon = "⏳"
+                        
                         if row['status'] == "승인":
-                            status_color = "green"
+                            status_color = "#2e7d32" # 초록
+                            status_bg = "#e8f5e9"
                             icon = "✅"
                         elif row['status'] == "반려":
-                            status_color = "red"
+                            status_color = "#c62828" # 빨강
+                            status_bg = "#ffebee"
                             icon = "❌"
                         elif row['status'] == "대기":
-                            status_color = "orange"
+                            status_color = "#ff9800" # 주황
+                            status_bg = "#fff3e0"
                             icon = "⏳"
 
-                        # 카드 형태로 보여주기
-                        with st.container():
+                        with st.container(border=True):
                             c1, c2 = st.columns([1, 4])
                             with c1:
-                                # 상태 표시 (큰 글씨)
                                 st.markdown(f"""
-                                    <div style='text-align: center; border: 2px solid {status_color}; border-radius: 10px; padding: 10px; color: {status_color}; font-weight: bold;'>
-                                        <div style='font-size: 24px;'>{icon}</div>
+                                    <div style='
+                                        background-color: {status_bg}; 
+                                        color: {status_color}; 
+                                        border-radius: 8px; 
+                                        padding: 15px; 
+                                        text-align: center;
+                                        font-weight: bold;
+                                        height: 100%;
+                                        display: flex; flex-direction: column; justify-content: center;
+                                    '>
+                                        <div style='font-size: 20px; margin-bottom: 5px;'>{icon}</div>
                                         <div>{row['status']}</div>
                                     </div>
                                 """, unsafe_allow_html=True)
                             with c2:
-                                st.markdown(f"**[{row['vacation_type']}] {row['start_date']} ~ {row['end_date']}**")
-                                st.caption(f"신청일: {row['request_date'][:16]}")
-                                st.write(f"사유: {row['reason']}")
-                            st.divider()
+                                st.markdown(f"#### [{row['vacation_type']}] {row['start_date']} ~ {row['end_date']}")
+                                st.caption(f"기안일: {row['request_date'][:16]}")
+                                st.write(f"**사유:** {row['reason']}")
 
     # === 2. 관리자 화면 ===
     else:
-        st.subheader("master 관리자 모드")
-        tab1, tab2 = st.tabs(["결재 대기 문서", "전체 기록 조회"])
+        st.subheader("🔒 관리자 모드")
         
-        with tab1:
-            st.write("🔴 **승인 대기 중인 문서**")
-            pending_df = load_data(filter_status="대기")
+        if 'admin_auth' not in st.session_state:
+            st.session_state['admin_auth'] = False
+
+        if not st.session_state['admin_auth']:
+            with st.form("admin_login"):
+                password_input = st.text_input("비밀번호", type="password")
+                login_btn = st.form_submit_button("로그인", type="primary")
+                if login_btn:
+                    if password_input == ADMIN_PASSWORD:
+                        st.session_state['admin_auth'] = True
+                        st.rerun()
+                    else:
+                        st.error("비밀번호가 일치하지 않습니다.")
+        
+        else:
+            if st.sidebar.button("로그아웃"):
+                st.session_state['admin_auth'] = False
+                st.rerun()
+
+            tab1, tab2 = st.tabs(["결재 대기 문서", "전체 문서 대장"])
             
-            if pending_df.empty:
-                st.info("현재 대기 중인 결재 문서가 없습니다.")
-            else:
-                for index, row in pending_df.iterrows():
-                    # 버튼 제목
-                    btn_label = f"📄 [{row['vacation_type']}] {row['name']} - {row['start_date']} (문서 확인하기)"
-                    
-                    with st.expander(btn_label):
-                        # === 문서 양식 보여주기 ===
-                        html_code = create_document_html(row)
-                        st.markdown(html_code, unsafe_allow_html=True)
-                        
-                        st.write("") # 여백
-                        
-                        # 승인/반려 버튼
-                        c1, c2, c3 = st.columns([1, 1, 3])
-                        with c1:
-                            if st.button("✅ 승인", key=f"approve_{row['id']}"):
-                                update_status(row['id'], "승인")
-                                st.rerun()
-                        with c2:
-                            if st.button("❌ 반려", key=f"reject_{row['id']}"):
-                                update_status(row['id'], "반려")
-                                st.rerun()
-        
-        with tab2:
-            st.write("📊 **전체 휴가 신청 내역**")
-            all_df = load_data()
-            st.dataframe(all_df)
+            with tab1:
+                pending_df = load_data(filter_status="대기")
+                
+                if pending_df.empty:
+                    st.balloons()
+                    st.success("모든 결재 처리가 완료되었습니다! 🎉")
+                else:
+                    st.write(f"🔴 **{len(pending_df)}건**의 미결재 문서가 있습니다.")
+                    for index, row in pending_df.iterrows():
+                        with st.expander(f"📌 [{row['name']}] {row['vacation_type']} 신청건 ({row['start_date']})"):
+                            # 디자인된 문서 양식 출력
+                            st.markdown(create_document_html(row), unsafe_allow_html=True)
+                            
+                            st.write("")
+                            c1, c2 = st.columns(2)
+                            with c1:
+                                if st.button("✅ 승인 처리", key=f"approve_{row['id']}", type="primary", use_container_width=True):
+                                    update_status(row['id'], "승인")
+                                    st.rerun()
+                            with c2:
+                                if st.button("❌ 반려 처리", key=f"reject_{row['id']}", use_container_width=True):
+                                    update_status(row['id'], "반려")
+                                    st.rerun()
+            
+            with tab2:
+                st.markdown("#### 📊 전체 휴가 사용 내역")
+                all_df = load_data()
+                st.dataframe(all_df, use_container_width=True)
 
 if __name__ == '__main__':
     main()
